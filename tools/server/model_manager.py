@@ -18,6 +18,7 @@ class ModelManager:
         llama_checkpoint_path: str,
         decoder_checkpoint_path: str,
         decoder_config_name: str,
+        decoder_device: str | None = None,
     ) -> None:
 
         self.mode = mode
@@ -35,18 +36,23 @@ class ModelManager:
             self.device = "cpu"
             logger.info("CUDA is not available, running on CPU.")
 
+        # Resolve decoder device (defaults to same as LLM device)
+        self.decoder_device = decoder_device or self.device
+        logger.info(f"LLM device: {self.device}, Decoder device: {self.decoder_device}")
+
         # Load the TTS models
         self.load_llama_model(
             llama_checkpoint_path, self.device, self.precision, self.compile, self.mode
         )
         self.load_decoder_model(
-            decoder_config_name, decoder_checkpoint_path, self.device
+            decoder_config_name, decoder_checkpoint_path, self.decoder_device
         )
         self.tts_inference_engine = TTSInferenceEngine(
             llama_queue=self.llama_queue,
             decoder_model=self.decoder_model,
             precision=self.precision,
             compile=self.compile,
+            llm_device=self.device,
         )
 
         # Warm up the models

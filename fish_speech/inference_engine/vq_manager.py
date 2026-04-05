@@ -16,6 +16,9 @@ class VQManager:
     def decode_vq_tokens(self, codes):
         logger.info(f"VQ features: {codes.shape}")
 
+        # [DUAL-GPU] Move codes from LLM device to decoder device
+        codes = codes.to(self.decoder_model.device)
+
         if isinstance(self.decoder_model, DAC):
             return self.decoder_model.from_indices(codes[None])[0].squeeze()
 

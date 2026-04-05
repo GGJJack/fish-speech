@@ -27,6 +27,7 @@ class TTSInferenceEngine(ReferenceLoader, VQManager):
         decoder_model: DAC,
         precision: torch.dtype,
         compile: bool,
+        llm_device: str | None = None,
     ) -> None:
 
         super().__init__()
@@ -35,6 +36,8 @@ class TTSInferenceEngine(ReferenceLoader, VQManager):
         self.decoder_model = decoder_model
         self.precision = precision
         self.compile = compile
+        # [DUAL-GPU] LLM device (defaults to decoder device for backward compat)
+        self._llm_device = torch.device(llm_device) if llm_device else decoder_model.device
 
     @torch.inference_mode()
     def inference(self, req: ServeTTSRequest) -> Generator[InferenceResult, None, None]:
@@ -149,8 +152,9 @@ class TTSInferenceEngine(ReferenceLoader, VQManager):
         """
 
         # Prepare the request
+        # [DUAL-GPU] Use LLM's own device, not decoder's device
         request = dict(
-            device=self.decoder_model.device,
+            device=self._llm_device,
             max_new_tokens=req.max_new_tokens,
             text=req.text,
             top_p=req.top_p,
