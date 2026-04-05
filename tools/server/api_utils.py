@@ -40,6 +40,17 @@ def parse_args():
         help="Device for decoder/codec model (e.g. cuda:1). Defaults to --device.",
     )
     parser.add_argument("--half", action="store_true")
+    parser.add_argument(
+        "--max-kv-cache-seq-len",
+        type=int,
+        default=0,
+        help="Override KV cache max seq len (0 = use model default). Lower values save VRAM.",
+    )
+    parser.add_argument(
+        "--skip-warm-up",
+        action="store_true",
+        help="Skip model warm-up to save VRAM on constrained GPUs.",
+    )
     parser.add_argument("--compile", action="store_true")
     parser.add_argument("--max-text-length", type=int, default=0)
     parser.add_argument("--listen", type=str, default="127.0.0.1:8080")

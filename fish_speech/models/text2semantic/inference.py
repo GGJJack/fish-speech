@@ -750,6 +750,7 @@ def launch_thread_safe_queue(
     device,
     precision,
     compile: bool = False,
+    max_seq_len: int = 0,
 ):
     input_queue = queue.Queue()
     init_event = threading.Event()
@@ -758,10 +759,11 @@ def launch_thread_safe_queue(
         model, decode_one_token = init_model(
             checkpoint_path, device, precision, compile=compile
         )
+        cache_seq_len = max_seq_len if max_seq_len > 0 else model.config.max_seq_len
         with torch.device(device):
             model.setup_caches(
                 max_batch_size=1,
-                max_seq_len=model.config.max_seq_len,
+                max_seq_len=cache_seq_len,
                 dtype=next(model.parameters()).dtype,
             )
         init_event.set()
